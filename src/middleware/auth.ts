@@ -11,8 +11,7 @@ export const userAuth=async(req:AuthRequest,res:Response,next:NextFunction)=>{
         if(!token){
             return res.status(401).json({message:"Unauthorized"})
         }
-        const decoded=await jwt.verify(token,process.env.JWT_SECRET as string) as JwtPayload;
-        console.log("Decoded token:", decoded);
+        const decoded=jwt.verify(token,process.env.JWT_SECRET as string) as JwtPayload;
         const user=await User.findById(decoded._id);
         if(!user){
             return res.status(401).json({message:"user not found"})

@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 interface IUserMethods {
     comparePassword(password: string): Promise<boolean>;
-    generateToken(): Promise<string>;
+    generateToken(): string;
 }
 
 export interface IUser extends mongoose.Document, IUserMethods {
@@ -64,9 +64,9 @@ userSchema.methods.comparePassword=async function(password:string){
     return isValid;
 
 }
-userSchema.methods.generateToken=async function(){
+userSchema.methods.generateToken=function(){
     const user=this;
-    const token=await jwt.sign({_id:user._id},process.env.JWT_SECRET as string,{expiresIn:"8h"});
+    const token=jwt.sign({_id:user._id},process.env.JWT_SECRET as string,{expiresIn:"8h"});
     return token;
 }
 
