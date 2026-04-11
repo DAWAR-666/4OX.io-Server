@@ -1,7 +1,26 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-const userSchema=new mongoose.Schema({
+interface IUserMethods {
+    comparePassword(password: string): Promise<boolean>;
+    generateToken(): Promise<string>;
+}
+
+interface IUser extends mongoose.Document, IUserMethods {
+    userName: string;
+    email: string;
+    password: string;
+    stats: {
+        wins: number;
+        losses: number;
+        totalGames: number;
+        winRate: number;
+    };
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+const userSchema = new mongoose.Schema<IUser, {}, IUserMethods>({
     userName:{
         type:String,
         required:true,
