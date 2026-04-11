@@ -48,3 +48,8 @@ authRouter.post("/signUp",async(req,res)=>{
       res.status(500).json({ message: "Server error" + err });
     }
 })
+authRouter.post('/logout',(req,res)=>{
+    res.cookie("token",null,{expires:new Date(Date.now())})
+    res.send('logout done!')
+})
+export default authRouter;
