@@ -17,8 +17,10 @@ authRouter.post("/login",async(req,res)=>{
      const token = await user.generateToken();
      res.cookie("token", token, {
        expires: new Date(Date.now() + 8 * 3600000),
+       httpOnly: true
      });
-     res.json({ data: user, message: "Login successful" });
+     const { password: _, ...safeUser } = user.toObject()
+     res.json({ data: safeUser, message: "Login successful" });
    } catch (err) {
      res.status(500).json({ message: "Server error" + err });
    }
@@ -42,14 +44,16 @@ authRouter.post("/signUp",async(req,res)=>{
       const token = await newUser.generateToken();
      res.cookie("token", token, {
        expires: new Date(Date.now() + 8 * 3600000),
+       httpOnly: true
      });
-      res.json({ data: newUser, message: "User created successfully" });
+     const { password: _, ...safeUser } = newUser.toObject()
+      res.json({ data: safeUser, message: "User created successfully" });
     } catch (err) {
       res.status(500).json({ message: "Server error" + err });
     }
 })
 authRouter.post('/logout',(req,res)=>{
-    res.cookie("token",null,{expires:new Date(Date.now())})
-    res.send('logout done!')
+    res.clearCookie("token", { httpOnly: true })
+    res.json({ message: 'Logged out successfully' })
 })
 export default authRouter;
