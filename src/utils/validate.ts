@@ -6,6 +6,9 @@ interface UserInput {
 }
 
 export const validateUserInput = (user: UserInput) => {
+    if (!user) {
+        throw new Error("User input is required");
+    }
     const { userName, email, password } = user;
     if (!userName || !email || !password) {
         throw new Error("All fields are required");

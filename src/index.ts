@@ -4,6 +4,8 @@ import cors from 'cors';
 import { connectDB } from './config/mongo';
 import http from 'http';
 import { initializeSocket } from './utils/socket';
+import authRouter from './routes/auth';
+
 dotenv.config();
 const app=express();
 const httpServer=http.createServer(app);
@@ -12,9 +14,7 @@ app.use(cors({origin:'http://localhost:5173'}))
 
 app.use(express.json());
 
-app.get('/',(req,res)=>{
-    res.json({message: 'Hello World!'});
-});
+app.use('/auth', authRouter);
 
 initializeSocket(httpServer);
 const PORT = process.env.PORT || 5000
