@@ -6,7 +6,7 @@ interface IUserMethods {
     generateToken(): Promise<string>;
 }
 
-interface IUser extends mongoose.Document, IUserMethods {
+export interface IUser extends mongoose.Document, IUserMethods {
     userName: string;
     email: string;
     password: string;

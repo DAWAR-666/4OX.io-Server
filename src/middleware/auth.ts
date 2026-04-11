@@ -1,10 +1,11 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
-import { Request,Response,NextFunction } from 'express';
+import {Response,NextFunction } from 'express';
+import { AuthRequest } from '../utils/types';
 interface JwtPayload {
     _id: string;
 }
-export const userAuth=async(req:Request,res:Response,next:NextFunction)=>{
+export const userAuth=async(req:AuthRequest,res:Response,next:NextFunction)=>{
     try{
         const {token}=req.cookies;
         if(!token){
@@ -16,7 +17,7 @@ export const userAuth=async(req:Request,res:Response,next:NextFunction)=>{
         if(!user){
             return res.status(401).json({message:"user not found"})
         }
-        (req as any).user=user;
+        req.user=user;
         next();
     } catch (err) {
         return res.status(401).json({message:"Invalid token"+err})
