@@ -39,4 +39,29 @@ roomRouter.post('/join',userAuth,async(req:AuthRequest,res:Response)=>{
         res.status(500).json({message:"Server error"+err})
     } 
 })
+
+roomRouter.get('/:roomId',userAuth,async(req:AuthRequest,res:Response)=>{
+    try{
+        const rId=req.params.roomId;
+        if(!rId){
+            return res.status(400).json({message:"Room ID is required"})
+        }
+        if(rId.length!==6){
+            return res.status(400).json({message:"Invalid Room ID"})
+        }
+        const room=await Room.findOne({roomId:rId}).populate('players', '-password');
+        if(!room){
+            return res.status(404).json({message:"Room not found"})
+        }
+        const includesPlayer=room.players.some((player)=>{
+            return player._id.equals(req.user!._id)
+        })
+        if(!includesPlayer){
+            return res.status(403).json({message:"You are not a member of this room"})
+        }
+        res.status(200).json({message:"Room found",data:{room}});
+    }catch(err){
+        res.status(500).json({message:"Server error"+err})
+    }
+})
 export default roomRouter;
