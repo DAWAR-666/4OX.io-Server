@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
 interface IRoom extends mongoose.Document{
-    roomID:string;
+    roomId:string;
     players:mongoose.Types.ObjectId[];
     gameState:"waiting" | "playing" | "finished";
     winner?:mongoose.Types.ObjectId | null;
 }
 const roomSchema=new mongoose.Schema<IRoom>({
-    roomID:{
+    roomId:{
         type:String,
         required:true,
         unique:true,

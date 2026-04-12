@@ -7,6 +7,8 @@ import { initializeSocket } from './utils/socket';
 import authRouter from './routes/auth';
 import { userAuth } from './middleware/auth';
 import cookieParser from 'cookie-parser';
+import roomRouter from './routes/room';
+
 dotenv.config();
 const app=express();
 const httpServer=http.createServer(app);
@@ -19,7 +21,7 @@ app.get('/get-user',userAuth,(req,res)=>{
     res.send('Hello World!')
 });
 app.use('/auth', authRouter);
-
+app.use('/room', roomRouter);
 initializeSocket(httpServer);
 const PORT = process.env.PORT || 5000
 connectDB()

@@ -39,3 +39,4 @@ roomRouter.post('/join',userAuth,async(req:AuthRequest,res:Response)=>{
         res.status(500).json({message:"Server error"+err})
     } 
 })
+export default roomRouter;
