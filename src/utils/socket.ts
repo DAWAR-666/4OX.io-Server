@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
 import http from "http";
 import Room from "../models/room";
-import { getGame ,createGame,setGame,deleteGame} from "./game";
+import { getGame ,createGame,setGame,deleteGame, getAllGame} from "./game";
 import { piece, Player } from "./types";
 import User from "../models/user";
 export const initializeSocket=(server:http.Server)=>{
@@ -130,7 +130,18 @@ export const initializeSocket=(server:http.Server)=>{
         })
         
         socket.on("disconnect",()=>{
-            console.log(socket.id+" disconnected");
+            const allGames=getAllGame()
+            const games=Object.entries(allGames)
+            for(const [roomId,gameState] of games){
+                const inGame=gameState.players.some((p:Player)=>p.socketId===socket.id)
+                if(inGame){
+                    if(gameState.status==='playing'){
+                        io.to(roomId).emit("opponent left")
+                    }
+                    deleteGame(roomId)
+                    break
+                }
+            }
         }
         );
     });

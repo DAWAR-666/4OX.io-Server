@@ -19,3 +19,6 @@ export const setGame=(roomId:string,game:Game):void=>{
 export const deleteGame=(roomId:string):void=>{
     delete gameStore[roomId];
 }
+export const getAllGame=():GameStore=>{
+    return gameStore
+}
