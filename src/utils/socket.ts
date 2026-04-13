@@ -3,6 +3,7 @@ import http from "http";
 import Room from "../models/room";
 import { getGame ,createGame,setGame,deleteGame} from "./game";
 import { piece, Player } from "./types";
+import User from "../models/user";
 export const initializeSocket=(server:http.Server)=>{
     const io=new Server(server,{
         cors:{
@@ -13,26 +14,31 @@ export const initializeSocket=(server:http.Server)=>{
     io.on("connection",(socket)=>{
         console.log(socket.id+" connected");
         
-        socket.on("joinRoom",async(roomId:string)=>{
+        socket.on("joinRoom",async(roomId:string,userId:string)=>{
             const isRoom=await Room.findOne({roomId});
             if(!isRoom){
                 console.log("Room not found: "+roomId);
                 socket.emit("error","Room not found");
                 return;
             }
+            const user = await User.findById(userId)
+            if(!user) {
+                socket.emit("error", "User not found")
+                return
+            }
             socket.join(roomId);
             console.log(socket.id+" joined room "+roomId);
             let gameState=getGame(roomId);
             if(!gameState){
                 const newGame=createGame();
-                const player:Player={id:null,socketId:socket.id,userName:"player1",symbol:'X',queue:[]};
+                const player:Player={id:userId,socketId:socket.id,userName:user.userName,symbol:'X',queue:[]};
                 newGame.players.push(player);
                 setGame(roomId,newGame);
                 gameState=newGame;
                 socket.emit("gameState",gameState);
             }
             else if(gameState?.players.length===1){
-                const player:Player={id:null,socketId:socket.id,userName:"player2",symbol:'O',queue:[]};
+                const player:Player={id:userId,socketId:socket.id,userName:user.userName,symbol:'O',queue:[]};
                 gameState?.players.push(player);
                 setGame(roomId,gameState);
                 gameState.status="playing";
@@ -47,7 +53,7 @@ export const initializeSocket=(server:http.Server)=>{
             }
 
         })
-        socket.on("gameMove",({roomId,cellIndex}:{roomId:string,cellIndex:number})=>{
+        socket.on("gameMove",async({roomId,cellIndex}:{roomId:string,cellIndex:number})=>{
             const gameState=getGame(roomId);
             if(!gameState){
                 socket.emit("error","Game not found");
@@ -72,7 +78,7 @@ export const initializeSocket=(server:http.Server)=>{
                 return;
             }
             gameState.board[cellIndex]=player.symbol;
-            player.queue.push({id:"piece"+cellIndex,cellIndex});
+            player.queue.push({id: `${socket.id}-${Date.now()}`,cellIndex});
             gameState.dissappearingPcs = null
             if (player.queue.length > 4) {
                 const removed = player.queue.shift()!
@@ -95,6 +101,27 @@ export const initializeSocket=(server:http.Server)=>{
                 setGame(roomId,gameState);
                 io.to(roomId).emit("gameState", gameState)
                 io.to(roomId).emit("gameOver", { winner: player })
+                try{
+                    const winnerUser = await User.findById(player.id)
+                    const loserUser = await User.findById(opponent!.id)
+
+                    if(winnerUser) {
+                    winnerUser.stats.wins += 1
+                    winnerUser.stats.totalGames += 1
+                    winnerUser.stats.winRate = Math.round((winnerUser.stats.wins / winnerUser.stats.totalGames) * 100)
+                    await winnerUser.save()
+                    }
+
+                    if(loserUser) {
+                    loserUser.stats.losses += 1
+                    loserUser.stats.totalGames += 1
+                    loserUser.stats.winRate = Math.round((loserUser.stats.wins / loserUser.stats.totalGames) * 100)
+                    await loserUser.save()
+                    }
+                }catch(err){
+                    console.error("Failed to update stats", err)
+                }
+                deleteGame(roomId)
                 return
             }
             gameState.currentTurn=opponent!.socketId;
