@@ -136,7 +136,7 @@ export const initializeSocket=(server:http.Server)=>{
                 const inGame=gameState.players.some((p:Player)=>p.socketId===socket.id)
                 if(inGame){
                     if(gameState.status==='playing'){
-                        io.to(roomId).emit("opponent left")
+                        io.to(roomId).emit("opponentLeft")
                     }
                     deleteGame(roomId)
                     break
