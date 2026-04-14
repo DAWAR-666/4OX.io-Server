@@ -129,7 +129,7 @@ export const initializeSocket=(server:http.Server)=>{
             io.to(roomId).emit("gameState",gameState);
         })
         
-        socket.on("disconnect",()=>{
+        socket.on("disconnect",async()=>{
             const allGames=getAllGame()
             const games=Object.entries(allGames)
             for(const [roomId,gameState] of games){
@@ -139,6 +139,9 @@ export const initializeSocket=(server:http.Server)=>{
                         io.to(roomId).emit("opponentLeft")
                     }
                     deleteGame(roomId)
+                    await Room.findOneAndDelete({ roomId }).catch(err =>
+                        console.error("Failed to delete room", err)
+                    )
                     break
                 }
             }
