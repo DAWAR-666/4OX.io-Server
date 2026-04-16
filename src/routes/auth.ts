@@ -14,7 +14,7 @@ authRouter.post("/login",async(req,res)=>{
      if (!isMatch) {
        return res.status(400).json({ message: "Invalid username or password" });
      }
-     const token = await user.generateToken();
+     const token = user.generateToken();
      res.cookie("token", token, {
        expires: new Date(Date.now() + 8 * 3600000),
        httpOnly: true
@@ -41,7 +41,7 @@ authRouter.post("/signUp",async(req,res)=>{
       const passwordHash = await bcrypt.hash(password, 10);
       const newUser = new User({ userName, email, password: passwordHash });
       await newUser.save();
-      const token = await newUser.generateToken();
+      const token = newUser.generateToken();
      res.cookie("token", token, {
        expires: new Date(Date.now() + 8 * 3600000),
        httpOnly: true
