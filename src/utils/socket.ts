@@ -80,7 +80,7 @@ export const initializeSocket=(server:http.Server)=>{
             gameState.board[cellIndex]=player.symbol;
             player.queue.push({id: `${socket.id}-${Date.now()}`,cellIndex});
             gameState.dissappearingPcs = null
-            if (player.queue.length > 4) {
+            if (player.queue.length > 3) {
                 const removed = player.queue.shift()!
                 gameState.board[removed.cellIndex] = null
                 gameState.dissappearingPcs = removed.id
