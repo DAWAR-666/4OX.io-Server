@@ -1,8 +1,21 @@
 import express from "express";
-import User from "../models/user";
+import User, { IUser } from "../models/user";
 import bcrypt from "bcrypt";
 import { validateUserInput } from "../utils/validate";
 const authRouter = express.Router();
+const safeUserFunc=(user:IUser)=>{
+  return {
+    userName:user.userName,
+    email:user.email,
+    stats: {
+        wins: user.stats?.wins ?? 0,
+        losses: user.stats?.losses ?? 0,
+        totalGames: user.stats?.totalGames ?? 0,
+        winRate: user.stats?.winRate ?? 0,
+    },
+    _id:user._id.toString()
+  }
+}
 authRouter.post("/login",async(req,res)=>{
    try {
      const { userName, password } = req.body;
@@ -19,7 +32,7 @@ authRouter.post("/login",async(req,res)=>{
        expires: new Date(Date.now() + 8 * 3600000),
        httpOnly: true
      });
-     const { password: _, ...safeUser } = user.toObject()
+     const safeUser=safeUserFunc(user)
      res.json({ data: safeUser, message: "Login successful" });
    } catch (err) {
      res.status(500).json({ message: "Server error" + err });
@@ -46,7 +59,7 @@ authRouter.post("/signUp",async(req,res)=>{
        expires: new Date(Date.now() + 8 * 3600000),
        httpOnly: true
      });
-     const { password: _, ...safeUser } = newUser.toObject()
+     const safeUser=safeUserFunc(newUser)
       res.json({ data: safeUser, message: "User created successfully" });
     } catch (err) {
       res.status(500).json({ message: "Server error" + err });
