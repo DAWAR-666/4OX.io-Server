@@ -8,13 +8,23 @@ export const initializeSocket=(server:http.Server)=>{
     const io=new Server(server,{
         cors:{
             origin:'http://localhost:5173',
-            methods:['GET','POST']
+            methods:['GET','POST'],
+            credentials:true
         }
     });
     io.on("connection",(socket)=>{
         console.log(socket.id+" connected");
         
         socket.on("joinRoom",async(roomId:string,userId:string)=>{
+            let gameState = getGame(roomId);
+    
+    // If player is already in this game, don't add them again
+    const existingPlayer = gameState?.players.find(p => p.id === userId);
+    if (existingPlayer) {
+        existingPlayer.socketId = socket.id; // Update socket ID in case of refresh
+        socket.join(roomId);
+        return io.to(roomId).emit("gameState", gameState);
+    }
             const isRoom=await Room.findOne({roomId});
             if(!isRoom){
                 console.log("Room not found: "+roomId);
@@ -28,7 +38,6 @@ export const initializeSocket=(server:http.Server)=>{
             }
             socket.join(roomId);
             console.log(socket.id+" joined room "+roomId);
-            let gameState=getGame(roomId);
             if(!gameState){
                 const newGame=createGame();
                 const player:Player={id:userId,socketId:socket.id,userName:user.userName,symbol:'X',queue:[]};
@@ -38,6 +47,13 @@ export const initializeSocket=(server:http.Server)=>{
                 socket.emit("gameState",gameState);
             }
             else if(gameState?.players.length===1){
+                const isAlreadyIn = gameState.players.find(p => p.id === userId);
+                    if (isAlreadyIn) {
+                    // Just update the socketId in case they refreshed
+                    isAlreadyIn.socketId = socket.id;
+                    socket.emit("gameState", gameState);
+                    return;
+                }
                 const player:Player={id:userId,socketId:socket.id,userName:user.userName,symbol:'O',queue:[]};
                 gameState?.players.push(player);
                 setGame(roomId,gameState);
@@ -131,9 +147,10 @@ export const initializeSocket=(server:http.Server)=>{
         
         socket.on("disconnect",async()=>{
             const allGames=getAllGame()
+            if(!allGames)return
             const games=Object.entries(allGames)
             for(const [roomId,gameState] of games){
-                const inGame=gameState.players.some((p:Player)=>p.socketId===socket.id)
+                const inGame=gameState.players.some((p:Player)=>p?.socketId===socket.id)
                 if(inGame){
                     if(gameState.status==='playing'){
                         io.to(roomId).emit("opponentLeft")
