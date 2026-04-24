@@ -30,7 +30,9 @@ authRouter.post("/login",async(req,res)=>{
      const token = user.generateToken();
      res.cookie("token", token, {
        expires: new Date(Date.now() + 8 * 3600000),
-       httpOnly: true
+       httpOnly: true,
+       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',  // ← 'none' for cross-domain
+      secure: process.env.NODE_ENV === 'production' ? true : false 
      });
      const safeUser=safeUserFunc(user)
      res.json({ data: safeUser, message: "Login successful" });
@@ -57,7 +59,9 @@ authRouter.post("/signUp",async(req,res)=>{
       const token = newUser.generateToken();
      res.cookie("token", token, {
        expires: new Date(Date.now() + 8 * 3600000),
-       httpOnly: true
+       httpOnly: true,
+       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',  // ← 'none' for cross-domain
+  secure: process.env.NODE_ENV === 'production' ? true : false 
      });
      const safeUser=safeUserFunc(newUser)
       res.json({ data: safeUser, message: "User created successfully" });
@@ -66,7 +70,11 @@ authRouter.post("/signUp",async(req,res)=>{
     }
 })
 authRouter.post('/logout',(req,res)=>{
-    res.clearCookie("token", { httpOnly: true })
+    res.clearCookie("token", {
+  httpOnly: true,
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+  secure: process.env.NODE_ENV === 'production' ? true : false
+})
     res.json({ message: 'Logged out successfully' })
 })
 export default authRouter;
