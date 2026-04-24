@@ -12,9 +12,12 @@ import userRouter from './routes/user';
 dotenv.config();
 const app=express();
 const httpServer=http.createServer(app);
-
+const allowedOrigins = [
+  'http://localhost:5173',
+  process.env.CLIENT_URL as string  // production frontend URL
+]
 app.use(cors({
-    origin:'http://localhost:5173',
+    origin:allowedOrigins,
     credentials: true
 }))
 app.use(cookieParser());
