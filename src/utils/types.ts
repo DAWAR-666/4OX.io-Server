@@ -2,7 +2,10 @@ import { Request } from 'express'
 import { IUser } from '../models/user'
 
 export interface AuthRequest extends Request {
-  user?: IUser
+  user?: IUser  
+  cookies: any        // ← add this
+  body: any           // ← add this
+  params: any         // ← add this
 }
 export type piece={
     id:string,
