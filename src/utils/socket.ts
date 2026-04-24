@@ -1,4 +1,5 @@
 import { Server } from "socket.io";
+import dotenv from 'dotenv';
 import http from "http";
 import Room from "../models/room";
 import { getGame ,createGame,setGame,deleteGame, getAllGame} from "./game";
